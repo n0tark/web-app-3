@@ -1,0 +1,191 @@
+{% comment %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Contact List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 15px;
+            text-align: center;
+        }
+        .contact {
+            background-color: #fff;
+            padding: 10px 15px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <h1>Online Contact List</h1>
+    <h2>Online Users:</h2>
+    <ul id="onlineUsers"></ul>
+        <p id="noUsersMessage" style="display: none;">No users are currently online.</p>
+
+    <h2>All Contacts:</h2>
+    <ul>
+        {% for contact in contacts %}
+            <div class="contact">
+                {{ contact.phone_number }}
+            </div>
+        {% endfor %}
+    </ul>
+
+<script>
+        // Create a new WebSocket connection for online users
+        const onlineSocket = new WebSocket('ws://http://127.0.0.1:8000//ws/online/');
+
+        // Handle messages received from the server
+        onlineSocket.onmessage = function(event) {
+            const message = JSON.parse(event.data);
+            const onlineUsers = message['online_users'];
+            const onlineUsersList = document.getElementById('onlineUsers');
+            const noUsersMessage = document.getElementById('noUsersMessage');
+
+            onlineUsersList.innerHTML = ''; // Clear previous list
+            // Check if there are no online users
+            if (onlineUsers.length === 0) {
+                noUsersMessage.style.display = 'block'; // Show the "no users" message
+            } else {
+                noUsersMessage.style.display = 'none'; // Hide the "no users" message
+                // Loop through online users and add them to the list
+                onlineUsers.forEach(function(user) {
+                    const li = document.createElement('li');
+                    li.textContent = user.username;
+                    onlineUsersList.appendChild(li);
+                });
+            }
+        };
+
+        // Log when the WebSocket connection is opened
+        onlineSocket.onopen = function() {
+            console.log('WebSocket connection established.');
+        };
+
+        // Log when the WebSocket connection is closed
+        onlineSocket.onclose = function() {
+            console.log('WebSocket connection closed.');
+        };
+    </script>
+
+</body>
+</html>
+{% endcomment %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phone Book</title>
+   <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        button {
+            display: block;
+            margin-top: 10px;
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-align: center;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .buttons{
+            display: flex;
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Contacts</h1>
+        <form id="delete-form" method="post">
+            {% csrf_token %}
+            {% for contact in contacts %}
+                <label>
+                    <input type="checkbox" name="contact_ids[]" value="{{ contact.id }}">
+                    {{ contact.name }} - {{ contact.phone_number }}
+                </label>
+            {% endfor %}
+        <div class="buttons">
+             <button type="submit">Delete Selected Contacts</button>
+             <button id="delete-all-btn">Delete All Contacts</button>
+        </div>
+        </form>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#delete-form').submit(function(event) {
+                event.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    type: 'POST',
+                    url: 'URL_FOR_DELETION_ENDPOINT',
+                    data: formData,
+                    success: function(response) {
+                        console.log('Contacts deleted successfully');
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error deleting contacts:', error);
+                    }
+                });
+            });
+
+            $('#delete-all-btn').click(function() {
+                $('input[type="checkbox"]').prop('checked', true);
+                if (confirm('Are you sure you want to delete all contacts?')) {
+                    $.ajax({
+                        type: 'POST',
+                        url: 'http://127.0.0.1:8000/phone-book/',
+                        data: { 'delete_all': true },
+                        success: function(response) {
+                            console.log('All contacts deleted successfully');
+                        },
+                        error: function(xhr, status, error) {
+                            console.error('Error deleting all contacts:', error);
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

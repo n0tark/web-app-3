@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Phone Book</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        h1 {
+            color: #333;
+        }
+        #delete-form {
+            margin-bottom: 20px;
+        }
+        #delete-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        #delete-form input[type="checkbox"] {
+            margin-right: 5px;
+        }
+        #delete-form button {
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        #delete-form button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Contacts</h1>
+    <form id="delete-form" method="post">
+        {% csrf_token %}
+        {% for contact in contacts %}
+            <label>
+                <input type="checkbox" name="contact_ids[]" value="{{ contact.id }}">
+                {{ contact.name }} - {{ contact.phone_number }}
+            </label>
+        {% endfor %}
+        <button type="submit">Delete Selected Contacts</button>
+    </form>
+ <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#delete-form').submit(function(event) {
+                event.preventDefault(); // Prevent the default form submission
+                var formData = $(this).serialize(); // Serialize form data
+                $.ajax({
+                    type: 'POST',
+                    url: 'URL_FOR_DELETION_ENDPOINT', // Replace 'URL_FOR_DELETION_ENDPOINT' with the actual URL
+                    data: formData,
+                    success: function(response) {
+                        // Handle successful deletion
+                        console.log('Contacts deleted successfully');
+                    },
+                    error: function(xhr, status, error) {
+                        // Handle error
+                        console.error('Error deleting contacts:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

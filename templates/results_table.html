@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Results Table</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Results Table</h1>
+    <table id="results">
+        <tr>
+            <th>Operation Name</th>
+            <th>Operation Data</th>
+            <th>Result</th>
+            <th>Date/Time Completed</th>
+        </tr>
+    </table>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        const socket = new WebSocket('ws://127.0.0.1:8000/ws/operations/');
+
+        socket.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            const row = `<tr>
+                            <td>${data.operation_name}</td>
+                            <td>${data.operation_data}</td>
+                            <td>${data.result}</td>
+                            <td>${data.timestamp}</td>
+                        </tr>`;
+            $('#results').append(row);
+        };
+    </script>
+</body>
+
+</html>
